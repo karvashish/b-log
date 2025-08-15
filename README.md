@@ -33,7 +33,7 @@ Usage:
 - Visit http://localhost:8080 to view the blog
 - Click a post to view its full content
 - Use 'limit' and 'offset' query parameters for pagination:
-  http://localhost:8080/?limit=5&offset=5
+  http://localhost:8080/posts?limit=2&offset=2
 
 Development:
 - Posts are stored in-memory via PostRepository

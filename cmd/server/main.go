@@ -1,6 +1,7 @@
 ﻿package main
 
 import (
+	"html/template"
 	"log"
 	"net/http"
 
@@ -9,9 +10,10 @@ import (
 )
 
 func main() {
+	tmpl := template.Must(template.ParseFiles("templates/layout.html"))
+	handlers.SetLayoutTemplate(tmpl)
 
 	postRepo := repository.NewPostRepository()
-
 	rootHandler := handlers.NewRootHandler()
 	postHandler := handlers.NewPostHandler(postRepo)
 	healthHandler := handlers.NewHealthHandler()

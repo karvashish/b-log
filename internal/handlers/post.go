@@ -61,7 +61,14 @@ func (h *PostHandler) List(w http.ResponseWriter, r *http.Request) {
 	if r.Header.Get("HX-Request") == "true" {
 		fmt.Fprint(w, renderPosts())
 	} else {
-		renderLayout(w, "b-log", `<div class="posts-container">`+renderPosts()+`</div>`)
+
+		content := `
+<div class="slider-wrapper">
+	<button class="slider-btn" id="slide-left">&#9664;</button>
+	<div id="posts" class="posts-container">` + renderPosts() + `</div>
+	<button class="slider-btn" id="slide-right">&#9654;</button>
+</div>`
+		renderLayout(w, "b-log", content)
 	}
 }
 
