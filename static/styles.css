@@ -100,7 +100,7 @@ main {
     margin: auto;
     padding: 1.25rem;
     height: inherit;
-    border: 1px solid #2a2a2a;
+    border: 1px solid rgba(34,211,238,.25);
     border-radius: 10px;
     display: flex;
     flex-direction: column;

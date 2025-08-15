@@ -1,0 +1,58 @@
+<div style="max-width:980px;margin:2rem auto;">
+	<h2 style="margin:0 0 1rem 0;">Upload files</h2>
+	<p style="margin:0 0 1.25rem 0;color:#b9b9b9;">Drag and drop files below or click to select.</p>
+
+	<div id="dropzone"
+		style="border:1px dashed #39b7c4;border-radius:10px;padding:2.25rem;background:rgba(34,211,238,0.06);
+		       display:flex;align-items:center;justify-content:center;cursor:pointer;transition:background .2s, border-color .2s;">
+		<span id="dz-label" style="color:#d9fdff;">Drop files here or click to upload</span>
+		<input id="file-input" type="file" multiple style="display:none;">
+	</div>
+
+	<div id="upload-log" style="margin-top:1rem;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.95rem;color:#cfd8dc;"></div>
+</div>
+
+<script>
+(function(){
+	const dz   = document.getElementById('dropzone');
+	const inp  = document.getElementById('file-input');
+	const log  = document.getElementById('upload-log');
+	const lab  = document.getElementById('dz-label');
+
+	function setHover(on){
+		dz.style.background = on ? 'rgba(34,211,238,0.12)' : 'rgba(34,211,238,0.06)';
+		dz.style.borderColor = on ? '#64e4f0' : '#39b7c4';
+	}
+
+	dz.addEventListener('click', ()=> inp.click());
+	dz.addEventListener('dragover', (e)=>{ e.preventDefault(); setHover(true); });
+	dz.addEventListener('dragleave', ()=> setHover(false));
+	dz.addEventListener('drop', (e)=>{
+		e.preventDefault();
+		setHover(false);
+		if(e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length){
+			uploadFiles(e.dataTransfer.files);
+		}
+	});
+	inp.addEventListener('change', ()=> {
+		if(inp.files && inp.files.length){ uploadFiles(inp.files); }
+	});
+
+	function uploadFiles(files){
+		lab.textContent = 'Uploading...';
+		const form = new FormData();
+		for(const f of files){ form.append('files', f, f.name); }
+
+		fetch('/upload', { method:'POST', body: form })
+			.then(r => r.json())
+			.then(j => {
+				lab.textContent = 'Drop files here or click to upload';
+				log.textContent = JSON.stringify(j, null, 2);
+			})
+			.catch(err => {
+				lab.textContent = 'Drop files here or click to upload';
+				log.textContent = 'error: ' + err;
+			});
+	}
+})();
+</script>
