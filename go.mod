@@ -2,7 +2,10 @@ module b-log.com/b-log
 
 go 1.25.0
 
-require modernc.org/sqlite v1.38.2
+require (
+	github.com/yuin/goldmark v1.7.13
+	modernc.org/sqlite v1.38.2
+)
 
 require (
 	github.com/dustin/go-humanize v1.0.1 // indirect

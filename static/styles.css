@@ -57,8 +57,8 @@ main {
     text-decoration: none;
     color: inherit;
     flex: 0 0 50rem;
-    margin-block: 12rem;
-    height: 16rem;
+    margin-block: auto;
+    height: fit-content;
     position: relative;
 }
 

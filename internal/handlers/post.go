@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"fmt"
-	"html"
 	"net/http"
 	"strconv"
 
@@ -50,10 +49,10 @@ func (h *PostHandler) List(w http.ResponseWriter, r *http.Request) {
 <a class="post-link" href="/post?id=%d">
 	<div class="post-box">
 		<h2>%s</h2>
-		<p>%s</p>
+		%s
 	</div>
 </a>
-`, p.ID, html.EscapeString(p.Title), html.EscapeString(preview))
+`, p.ID, p.Title, preview)
 		}
 		return htmlStr
 	}
@@ -61,7 +60,6 @@ func (h *PostHandler) List(w http.ResponseWriter, r *http.Request) {
 	if r.Header.Get("HX-Request") == "true" {
 		fmt.Fprint(w, renderPosts())
 	} else {
-
 		content := `
 <div class="slider-wrapper">
 	<button class="slider-btn" id="slide-left">&#9664;</button>
@@ -89,14 +87,14 @@ func (h *PostHandler) View(w http.ResponseWriter, r *http.Request) {
 		return fmt.Sprintf(`
 <div class="post-box">
 	<h2>%s</h2>
-	<p>%s</p>
+	%s
 </div>
-`, html.EscapeString(post.Title), html.EscapeString(post.Content))
+`, post.Title, post.Content)
 	}
 
 	if r.Header.Get("HX-Request") == "true" {
 		fmt.Fprint(w, renderPost())
 	} else {
-		renderLayout(w, "b-log - "+html.EscapeString(post.Title), renderPost())
+		renderLayout(w, "b-log - "+post.Title, renderPost())
 	}
 }

@@ -6,17 +6,6 @@
 	<link rel="icon" href="/static/favicon.ico" type="image/x-icon">
 	<script src="https://unpkg.com/htmx.org@1.9.10"></script>
 	<link rel="stylesheet" href="/static/styles.css">
-	<style>
-		.post-link .post-box{
-			transform: scale(0.78);
-			opacity: 0.55;
-			transition: transform .25s ease, opacity .25s ease, box-shadow .25s ease;
-		}
-		.post-link.active .post-box{
-			transform: scale(1);
-			opacity: 1;
-		}
-	</style>
 </head>
 <body>
 	<header>
@@ -33,20 +22,26 @@
 				if (!wrapper || !track || !leftBtn || !rightBtn) return;
 
 				const items = Array.from(track.querySelectorAll('.post-link'));
-				if (items.length <= 1) { leftBtn.onclick = rightBtn.onclick = null; track.style.transform = 'translateX(0px)'; return; }
-
 				const gap   = parseFloat(getComputedStyle(track).gap) || 0;
-				const cardW = items[0].getBoundingClientRect().width;
+				const cardW = items[0] ? items[0].getBoundingClientRect().width : 0;
 				const step  = cardW + gap;
-
 				const start = 400;
-				const offsets = items.map((_, i) => start - i * step);
 
+				if (items.length <= 1) {
+					leftBtn.onclick = rightBtn.onclick = null;
+					if (items[0]) {
+						items[0].classList.add('active');
+						track.style.transform = `translateX(${start}px)`;
+					}
+					return;
+				}
+
+				const offsets = items.map((_, i) => start - i * step);
 				track.style.width = (step * items.length) + 'px';
 
 				let idx = 0;
 
-				function apply(){
+				function apply() {
 					track.style.transform = `translateX(${offsets[idx]}px)`;
 					items.forEach(el => el.classList.remove('active'));
 					items[idx].classList.add('active');

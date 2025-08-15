@@ -1,13 +1,14 @@
 package repository
 
 import (
+	"bytes"
 	"database/sql"
-	"encoding/json"
-	"io/fs"
 	"log"
 	"os"
 	"path/filepath"
+	"strings"
 
+	"github.com/yuin/goldmark"
 	_ "modernc.org/sqlite"
 )
 
@@ -33,18 +34,18 @@ func InitDB(path string) *sql.DB {
 	}
 
 	if count == 0 {
-		seedFromJSON(db, filepath.Join("internal", "repository", "blog"))
+		seedFromMarkdown(db, filepath.Join("internal", "repository", "blog"))
 	}
 
 	return db
 }
 
-func seedFromJSON(db *sql.DB, dir string) {
-	err := filepath.WalkDir(dir, func(path string, d fs.DirEntry, err error) error {
+func seedFromMarkdown(db *sql.DB, dir string) {
+	err := filepath.WalkDir(dir, func(path string, d os.DirEntry, err error) error {
 		if err != nil {
 			return err
 		}
-		if d.IsDir() || filepath.Ext(d.Name()) != ".json" {
+		if d.IsDir() || filepath.Ext(d.Name()) != ".md" {
 			return nil
 		}
 
@@ -54,18 +55,24 @@ func seedFromJSON(db *sql.DB, dir string) {
 			return nil
 		}
 
-		var post Post
-		if err := json.Unmarshal(data, &post); err != nil {
-			log.Printf("failed to parse %s: %v", path, err)
+		lines := strings.SplitN(string(data), "\n", 2)
+		if len(lines) < 2 {
+			log.Printf("skipping %s: not enough content", path)
 			return nil
 		}
 
-		if post.Title == "" || post.Content == "" {
-			log.Printf("skipping %s: missing title or content", path)
+		title := strings.TrimSpace(strings.TrimPrefix(lines[0], "#"))
+		markdown := strings.TrimSpace(lines[1])
+
+		// Convert markdown → HTML
+		var buf bytes.Buffer
+		if err := goldmark.Convert([]byte(markdown), &buf); err != nil {
+			log.Printf("failed to convert markdown %s: %v", path, err)
 			return nil
 		}
+		html := buf.String()
 
-		_, err = db.Exec("INSERT INTO posts (title, content) VALUES (?, ?)", post.Title, post.Content)
+		_, err = db.Exec("INSERT INTO posts (title, content) VALUES (?, ?)", title, html)
 		if err != nil {
 			log.Printf("failed to insert %s: %v", path, err)
 		}
