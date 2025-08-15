@@ -43,8 +43,8 @@ func (h *PostHandler) List(w http.ResponseWriter, r *http.Request) {
 		htmlStr := ""
 		for _, p := range posts[offset:end] {
 			preview := p.Content
-			if len(preview) > 120 {
-				preview = preview[:120] + "..."
+			if len(preview) > 500 {
+				preview = preview[:500] + "..."
 			}
 			htmlStr += fmt.Sprintf(`
 <a class="post-link" href="/post?id=%d">

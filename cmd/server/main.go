@@ -21,6 +21,7 @@ func main() {
 	mux.HandleFunc("/posts", postHandler.List)
 	mux.HandleFunc("/post", postHandler.View)
 	mux.HandleFunc("/healthz", healthHandler.Health)
+	mux.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
 
 	log.Println("Server starting on :8080")
 	log.Fatal(http.ListenAndServe(":8080", mux))

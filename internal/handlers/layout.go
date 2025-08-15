@@ -11,6 +11,7 @@ func renderLayout(w http.ResponseWriter, title, content string) {
 <head>
 	<meta charset="UTF-8">
 	<title>%s</title>
+	<link rel="icon" href="/static/favicon.ico" type="image/x-icon">
 	<script src="https://unpkg.com/htmx.org@1.9.10"></script>
 	<style>
 		html, body { height: 100%%; margin: 0; }
@@ -48,11 +49,12 @@ func renderLayout(w http.ResponseWriter, title, content string) {
 			transition: transform 0.4s ease;
 			will-change: transform;
 		}
-		.post-link { text-decoration: none; color: inherit; flex: 0 0 50rem; margin-block: 12rem }
+		.post-link { text-decoration: none; color: inherit; flex: 0 0 50rem; margin-block: 12rem; height: 16rem; }
 
 		.post-box {
 			background: linear-gradient(180deg, #1f1f1f 0%%, #171717 100%%);
 			padding: 1.25rem;
+			height: inherit;
 			border: 1px solid #2a2a2a;
 			border-radius: 8px;
 			display: flex;
@@ -62,6 +64,7 @@ func renderLayout(w http.ResponseWriter, title, content string) {
 			transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease, border-color 0.2s ease;
 			cursor: pointer;
 		}
+
 		.post-box:hover {
 			transform: translateY(-4px);
 			box-shadow: 0 12px 24px rgba(0, 0, 0, 0.65);
@@ -69,7 +72,7 @@ func renderLayout(w http.ResponseWriter, title, content string) {
 			border-color: #3a3a3a;
 		}
 		.post-box h2 {
-			margin: 0 0 0.6rem 0;
+			margin: 15px 1px 0.6rem 35px;
 			font-size: 1.4rem;
 			font-weight: 700;
 			letter-spacing: 0.2px;
@@ -79,7 +82,7 @@ func renderLayout(w http.ResponseWriter, title, content string) {
 			flex-grow: 1;
 			color: #c6c6c6;
 			line-height: 1.55;
-			margin: 0;
+			margin: 38px;
 		}
 
 		.slider-btn {
@@ -105,13 +108,7 @@ func renderLayout(w http.ResponseWriter, title, content string) {
 	<header>
 		<a href="/" style="color:inherit; text-decoration:none;">b-log</a>
 	</header>
-	<main>
-		<div class="slider-wrapper">
-			<button class="slider-btn" id="slide-left">&#9664;</button>
-			<div class="posts-container">%s</div>
-			<button class="slider-btn" id="slide-right">&#9654;</button>
-		</div>
-	</main>
+	<main>%s</main>
 	<script>
 		(function(){
 			const container = document.querySelector('.posts-container');
