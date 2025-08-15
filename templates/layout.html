@@ -24,8 +24,8 @@
 				const items = Array.from(track.querySelectorAll('.post-link'));
 				const gap   = parseFloat(getComputedStyle(track).gap) || 0;
 				const cardW = items[0] ? items[0].getBoundingClientRect().width : 0;
-				const step  = cardW + gap;
-				const start = 400;
+				const wrapperW = wrapper.getBoundingClientRect().width;
+				const start = (wrapperW - cardW - 28) / 2;
 
 				if (items.length <= 1) {
 					leftBtn.onclick = rightBtn.onclick = null;
@@ -36,6 +36,7 @@
 					return;
 				}
 
+				const step = cardW + gap;
 				const offsets = items.map((_, i) => start - i * step);
 				track.style.width = (step * items.length) + 'px';
 
