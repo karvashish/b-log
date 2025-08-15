@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html>
+
 <head>
 	<meta charset="UTF-8">
 	<title>{{.Title}}</title>
@@ -7,32 +8,49 @@
 	<script src="https://unpkg.com/htmx.org@1.9.10"></script>
 	<link rel="stylesheet" href="/static/styles.css">
 </head>
+
 <body>
 	<header>
 		<a href="/" style="color:inherit; text-decoration:none;">b-log</a>
 	</header>
 	<main>{{.Content}}</main>
 	<script>
-		(function(){
-			const container = document.querySelector('.posts-container');
-			if(!container) return;
-			const step = 824;
-			let offset = 400;
+		(function () {
+			function init() {
+				const wrapper = document.querySelector('.slider-wrapper');
+				const track = document.querySelector('.posts-container');
+				const leftBtn = document.getElementById('slide-left');
+				const rightBtn = document.getElementById('slide-right');
+				if (!wrapper || !track || !leftBtn || !rightBtn) return;
 
-			const leftBtn = document.getElementById('slide-left');
-			const rightBtn = document.getElementById('slide-right');
-			if(!leftBtn || !rightBtn) return;
+				const items = track.querySelectorAll('.post-link');
+				if (items.length <= 1) { leftBtn.onclick = rightBtn.onclick = null; track.style.transform = 'translateX(0px)'; return; }
 
-			leftBtn.addEventListener('click', () => {
-				offset = Math.min(offset + step, 0);
-				container.style.transform = 'translateX(' + offset + 'px)';
-			});
-			rightBtn.addEventListener('click', () => {
-				const maxOffset = -(container.scrollWidth - container.clientWidth);
-				offset = Math.max(offset - step, maxOffset);
-				container.style.transform = 'translateX(' + offset + 'px)';
-			});
+				const gap = parseFloat(getComputedStyle(track).gap) || 0;
+				const cardW = items[0].getBoundingClientRect().width;
+				const step = cardW + gap;
+
+				const start = 400;
+				const offsets = Array.from({ length: items.length }, (_, i) => start - i * step);
+
+				track.style.width = (step * items.length) + 'px';
+
+				let idx = 0;
+				function apply() { track.style.transform = `translateX(${offsets[idx]}px)`; }
+				apply();
+
+				leftBtn.onclick = () => { if (idx > 0) idx--, apply(); };
+				rightBtn.onclick = () => { if (idx < offsets.length - 1) idx++, apply(); };
+			}
+
+			if (document.readyState === 'loading') {
+				document.addEventListener('DOMContentLoaded', init);
+			} else {
+				init();
+			}
+			document.addEventListener('htmx:afterOnLoad', init);
 		})();
 	</script>
 </body>
+
 </html>
