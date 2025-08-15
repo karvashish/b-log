@@ -39,6 +39,7 @@ Development:
 - Posts are stored in-memory via PostRepository
 - Edit internal/repository/posts.go to modify seeded content
 
+
 License
 -------
 MIT
