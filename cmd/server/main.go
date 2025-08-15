@@ -13,7 +13,9 @@ func main() {
 	tmpl := template.Must(template.ParseFiles("templates/layout.html"))
 	handlers.SetLayoutTemplate(tmpl)
 
-	postRepo := repository.NewPostRepository()
+	db := repository.InitDB("tmp/b-log.db")
+	postRepo := repository.NewPostRepository(db)
+
 	rootHandler := handlers.NewRootHandler()
 	postHandler := handlers.NewPostHandler(postRepo)
 	healthHandler := handlers.NewHealthHandler()
