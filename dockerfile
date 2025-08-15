@@ -9,10 +9,12 @@ RUN go build -ldflags="-s -w" -o /out/app ./cmd/server
 
 FROM alpine:3.20
 WORKDIR /app
-RUN adduser -D -H -u 10001 appuser
+RUN adduser -D -H -u 10001 appuser && apk add --no-cache ca-certificates
 COPY --from=build /out/app /app/app
 COPY templates/ /app/templates/
 COPY static/ /app/static/
-EXPOSE 8080
+COPY internal/repository/blog/ /app/internal/repository/blog/
+RUN mkdir -p /app/tmp /tmp && chown -R appuser:appuser /app /tmp
 USER appuser
+EXPOSE 8080
 ENTRYPOINT ["/app/app"]
