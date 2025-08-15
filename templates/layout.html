@@ -1,14 +1,23 @@
 <!DOCTYPE html>
 <html>
-
 <head>
 	<meta charset="UTF-8">
 	<title>{{.Title}}</title>
 	<link rel="icon" href="/static/favicon.ico" type="image/x-icon">
 	<script src="https://unpkg.com/htmx.org@1.9.10"></script>
 	<link rel="stylesheet" href="/static/styles.css">
+	<style>
+		.post-link .post-box{
+			transform: scale(0.78);
+			opacity: 0.55;
+			transition: transform .25s ease, opacity .25s ease, box-shadow .25s ease;
+		}
+		.post-link.active .post-box{
+			transform: scale(1);
+			opacity: 1;
+		}
+	</style>
 </head>
-
 <body>
 	<header>
 		<a href="/" style="color:inherit; text-decoration:none;">b-log</a>
@@ -17,30 +26,35 @@
 	<script>
 		(function () {
 			function init() {
-				const wrapper = document.querySelector('.slider-wrapper');
-				const track = document.querySelector('.posts-container');
-				const leftBtn = document.getElementById('slide-left');
+				const wrapper  = document.querySelector('.slider-wrapper');
+				const track    = document.querySelector('.posts-container');
+				const leftBtn  = document.getElementById('slide-left');
 				const rightBtn = document.getElementById('slide-right');
 				if (!wrapper || !track || !leftBtn || !rightBtn) return;
 
-				const items = track.querySelectorAll('.post-link');
+				const items = Array.from(track.querySelectorAll('.post-link'));
 				if (items.length <= 1) { leftBtn.onclick = rightBtn.onclick = null; track.style.transform = 'translateX(0px)'; return; }
 
-				const gap = parseFloat(getComputedStyle(track).gap) || 0;
+				const gap   = parseFloat(getComputedStyle(track).gap) || 0;
 				const cardW = items[0].getBoundingClientRect().width;
-				const step = cardW + gap;
+				const step  = cardW + gap;
 
 				const start = 400;
-				const offsets = Array.from({ length: items.length }, (_, i) => start - i * step);
+				const offsets = items.map((_, i) => start - i * step);
 
 				track.style.width = (step * items.length) + 'px';
 
 				let idx = 0;
-				function apply() { track.style.transform = `translateX(${offsets[idx]}px)`; }
+
+				function apply(){
+					track.style.transform = `translateX(${offsets[idx]}px)`;
+					items.forEach(el => el.classList.remove('active'));
+					items[idx].classList.add('active');
+				}
 				apply();
 
-				leftBtn.onclick = () => { if (idx > 0) idx--, apply(); };
-				rightBtn.onclick = () => { if (idx < offsets.length - 1) idx++, apply(); };
+				leftBtn.onclick  = () => { if (idx > 0) { idx--; apply(); } };
+				rightBtn.onclick = () => { if (idx < items.length - 1) { idx++; apply(); } };
 			}
 
 			if (document.readyState === 'loading') {
@@ -52,5 +66,4 @@
 		})();
 	</script>
 </body>
-
 </html>

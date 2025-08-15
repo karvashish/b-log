@@ -1,4 +1,7 @@
-html, body { height: 100%; margin: 0; }
+html, body { 
+    height: 100%; 
+    margin: 0; 
+}
 body {
     background-color: #121212;
     color: #e0e0e0;
@@ -42,6 +45,17 @@ main {
     height: 16rem;
 }
 
+/* Focus effect: shrink and fade non-active cards */
+.post-link .post-box {
+    transform: scale(0.78);
+    opacity: 0.55;
+    transition: transform .25s ease, opacity .25s ease, box-shadow .25s ease;
+}
+.post-link.active .post-box {
+    transform: scale(1);
+    opacity: 1;
+}
+
 .post-box {
     background: linear-gradient(180deg, #1f1f1f 0%, #171717 100%);
     max-width: 900px;
@@ -54,10 +68,8 @@ main {
     flex-direction: column;
     justify-content: space-between;
     box-shadow: 0 8px 16px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.02);
-    transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease, border-color 0.2s ease;
     cursor: pointer;
 }
-
 .post-box:hover {
     transform: translateY(-4px);
     box-shadow: 0 12px 24px rgba(0, 0, 0, 0.65);
