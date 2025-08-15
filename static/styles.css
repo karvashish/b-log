@@ -44,6 +44,8 @@ main {
 
 .post-box {
     background: linear-gradient(180deg, #1f1f1f 0%, #171717 100%);
+    max-width: 900px;
+    margin: auto;
     padding: 1.25rem;
     height: inherit;
     border: 1px solid #2a2a2a;

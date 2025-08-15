@@ -2,7 +2,11 @@ package repository
 
 import (
 	"database/sql"
+	"encoding/json"
+	"io/fs"
 	"log"
+	"os"
+	"path/filepath"
 
 	_ "modernc.org/sqlite"
 )
@@ -29,16 +33,45 @@ func InitDB(path string) *sql.DB {
 	}
 
 	if count == 0 {
-		seedPosts := []Post{
-			{Title: "First Beginnings", Content: "This is the very first blog post in our series, marking the start of our journey..."},
-		}
-		for _, p := range seedPosts {
-			_, err := db.Exec("INSERT INTO posts (title, content) VALUES (?, ?)", p.Title, p.Content)
-			if err != nil {
-				log.Printf("failed to insert seed post: %v", err)
-			}
-		}
+		seedFromJSON(db, filepath.Join("internal", "repository", "blog"))
 	}
 
 	return db
+}
+
+func seedFromJSON(db *sql.DB, dir string) {
+	err := filepath.WalkDir(dir, func(path string, d fs.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+		if d.IsDir() || filepath.Ext(d.Name()) != ".json" {
+			return nil
+		}
+
+		data, err := os.ReadFile(path)
+		if err != nil {
+			log.Printf("failed to read %s: %v", path, err)
+			return nil
+		}
+
+		var post Post
+		if err := json.Unmarshal(data, &post); err != nil {
+			log.Printf("failed to parse %s: %v", path, err)
+			return nil
+		}
+
+		if post.Title == "" || post.Content == "" {
+			log.Printf("skipping %s: missing title or content", path)
+			return nil
+		}
+
+		_, err = db.Exec("INSERT INTO posts (title, content) VALUES (?, ?)", post.Title, post.Content)
+		if err != nil {
+			log.Printf("failed to insert %s: %v", path, err)
+		}
+		return nil
+	})
+	if err != nil {
+		log.Printf("error walking blog dir: %v", err)
+	}
 }
