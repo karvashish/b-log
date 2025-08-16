@@ -8,19 +8,19 @@ import (
 	"path/filepath"
 	"strings"
 
+	_ "github.com/jackc/pgx/v5/stdlib"
 	"github.com/yuin/goldmark"
-	_ "modernc.org/sqlite"
 )
 
 func InitDB(path string) *sql.DB {
-	db, err := sql.Open("sqlite", path)
+	db, err := sql.Open("pgx", path)
 	if err != nil {
 		log.Fatalf("failed to open database: %v", err)
 	}
 
 	createTable := `
 	CREATE TABLE IF NOT EXISTS posts (
-		id INTEGER PRIMARY KEY AUTOINCREMENT,
+		id BIGSERIAL PRIMARY KEY,
 		title TEXT NOT NULL,
 		content TEXT NOT NULL
 	);`
@@ -64,7 +64,6 @@ func seedFromMarkdown(db *sql.DB, dir string) {
 		title := strings.TrimSpace(strings.TrimPrefix(lines[0], "#"))
 		markdown := strings.TrimSpace(lines[1])
 
-		// Convert markdown → HTML
 		var buf bytes.Buffer
 		if err := goldmark.Convert([]byte(markdown), &buf); err != nil {
 			log.Printf("failed to convert markdown %s: %v", path, err)
@@ -72,7 +71,7 @@ func seedFromMarkdown(db *sql.DB, dir string) {
 		}
 		html := buf.String()
 
-		_, err = db.Exec("INSERT INTO posts (title, content) VALUES (?, ?)", title, html)
+		_, err = db.Exec("INSERT INTO posts (title, content) VALUES ($1, $2)", title, html)
 		if err != nil {
 			log.Printf("failed to insert %s: %v", path, err)
 		}

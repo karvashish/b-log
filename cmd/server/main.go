@@ -13,7 +13,9 @@ func main() {
 	tmpl := template.Must(template.ParseFiles("templates/layout.html"))
 	handlers.SetLayoutTemplate(tmpl)
 
-	db := repository.InitDB("tmp/b-log.db")
+	dsn := "postgresql://blog:CHANGE_ME_STRONG@postgres:5432/b_log?sslmode=disable"
+
+	db := repository.InitDB(dsn)
 	postRepo := repository.NewPostRepository(db)
 
 	rootHandler := handlers.NewRootHandler()
