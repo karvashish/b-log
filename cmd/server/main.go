@@ -46,12 +46,14 @@ func main() {
 	rootHandler := handlers.NewRootHandler()
 	postHandler := handlers.NewPostHandler(postRepo)
 	healthHandler := handlers.NewHealthHandler()
+	uploadHandler := handlers.NewUploadHandler()
 
 	mux := http.NewServeMux()
 	mux.Handle("/", rootHandler)
 	mux.HandleFunc("/posts", postHandler.List)
 	mux.HandleFunc("/post", postHandler.View)
 	mux.HandleFunc("/healthz", healthHandler.Health)
+	mux.HandleFunc("/upload", uploadHandler.ServeHTTP)
 	mux.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
 
 	srv := &http.Server{
