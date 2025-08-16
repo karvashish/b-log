@@ -5,7 +5,7 @@ COPY go.mod go.sum ./
 RUN go mod download
 COPY . .
 ENV CGO_ENABLED=0
-RUN go build -ldflags="-s -w" -o /out/app ./cmd/server
+RUN go build -ldflags="-s -w" -o /out/app ./cmd
 
 FROM alpine:3.20
 WORKDIR /app

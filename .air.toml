@@ -1,5 +1,5 @@
 ﻿[build]
-  cmd = "go build -o tmp/app.exe ./cmd/server"
+  cmd = "go build -o tmp/app.exe ./cmd"
   bin = "tmp/app.exe"
   full_bin = ""
   include_ext = ["go"]
