@@ -12,8 +12,8 @@ import (
 	"github.com/yuin/goldmark"
 )
 
-func InitDB(path string) *sql.DB {
-	db, err := sql.Open("pgx", path)
+func InitDB(dsn string, seedOnEmpty bool) *sql.DB {
+	db, err := sql.Open("pgx", dsn)
 	if err != nil {
 		log.Fatalf("failed to open database: %v", err)
 	}
@@ -33,7 +33,7 @@ func InitDB(path string) *sql.DB {
 		log.Fatalf("failed to count posts: %v", err)
 	}
 
-	if count == 0 {
+	if seedOnEmpty && count == 0 {
 		seedFromMarkdown(db, filepath.Join("internal", "repository", "blog"))
 	}
 
@@ -71,8 +71,10 @@ func seedFromMarkdown(db *sql.DB, dir string) {
 		}
 		html := buf.String()
 
-		_, err = db.Exec("INSERT INTO posts (title, content) VALUES ($1, $2)", title, html)
-		if err != nil {
+		if _, err := db.Exec(
+			"INSERT INTO posts (title, content) VALUES ($1, $2)",
+			title, html,
+		); err != nil {
 			log.Printf("failed to insert %s: %v", path, err)
 		}
 		return nil
