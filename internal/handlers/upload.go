@@ -8,11 +8,26 @@ import (
 	"os"
 	"path/filepath"
 	"time"
+
+	"github.com/nats-io/nats.go"
 )
 
-type UploadHandler struct{}
+type UploadHandler struct {
+	nc         *nats.Conn
+	subject    string
+	standalone bool
+}
 
-func NewUploadHandler() *UploadHandler { return &UploadHandler{} }
+func NewUploadHandler(nc *nats.Conn, subject string, standalone bool) *UploadHandler {
+	if subject == "" {
+		subject = "b_log.uploaded"
+	}
+	return &UploadHandler{
+		nc:         nc,
+		subject:    subject,
+		standalone: standalone,
+	}
+}
 
 func (u *UploadHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
@@ -56,6 +71,16 @@ func (u *UploadHandler) handleUpload(w http.ResponseWriter, r *http.Request) {
 	}
 	out := make([]result, 0, len(files))
 
+	type uploadEvent struct {
+		OriginalName string    `json:"original_name"`
+		StoredName   string    `json:"stored_name"`
+		StoredPath   string    `json:"stored_path"`
+		Size         int64     `json:"size"`
+		UploadedAt   time.Time `json:"uploaded_at"`
+		UserAgent    string    `json:"user_agent,omitempty"`
+		RemoteAddr   string    `json:"remote_addr,omitempty"`
+	}
+
 	for _, fh := range files {
 		fr, err := fh.Open()
 		if err != nil {
@@ -84,6 +109,21 @@ func (u *UploadHandler) handleUpload(w http.ResponseWriter, r *http.Request) {
 		}
 
 		out = append(out, result{Name: fh.Filename, Size: n})
+
+		if !u.standalone && u.nc != nil {
+			ev := uploadEvent{
+				OriginalName: fh.Filename,
+				StoredName:   dstName,
+				StoredPath:   dstPath,
+				Size:         n,
+				UploadedAt:   time.Now().UTC(),
+				UserAgent:    r.UserAgent(),
+				RemoteAddr:   r.RemoteAddr,
+			}
+			if data, err := json.Marshal(ev); err == nil {
+				_ = u.nc.Publish(u.subject, data)
+			}
+		}
 	}
 
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")

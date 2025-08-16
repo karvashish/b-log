@@ -13,16 +13,16 @@ import (
 	"b-log.com/b-log/internal/repository"
 
 	_ "github.com/jackc/pgx/v5/stdlib"
+	"github.com/nats-io/nats.go"
 )
 
 func main() {
 	tmpl := template.Must(template.ParseFiles("templates/layout.html"))
 	handlers.SetLayoutTemplate(tmpl)
 
-	standaloneEnv := os.Getenv("STANDALONE")
 	standalone := true
-	if standaloneEnv != "" {
-		standalone = strings.ToLower(standaloneEnv) == "true"
+	if v := os.Getenv("STANDALONE"); v != "" {
+		standalone = strings.ToLower(v) == "true"
 	}
 	if standalone {
 		log.Println("Running in STANDALONE mode (no DB, no NATS)")
@@ -35,7 +35,11 @@ func main() {
 	}
 	addr := ":" + port
 
-	var db *sql.DB
+	var (
+		db *sql.DB
+		nc *nats.Conn
+	)
+
 	if !standalone {
 		dbURL := os.Getenv("DATABASE_URL")
 		if dbURL == "" {
@@ -46,7 +50,12 @@ func main() {
 		if natsURL == "" {
 			log.Fatal("missing required env var: NATS_URL")
 		}
-		log.Println("Using NATS at", natsURL)
+		var err error
+		nc, err = nats.Connect(natsURL)
+		if err != nil {
+			log.Fatalf("failed to connect to NATS: %v", err)
+		}
+		defer nc.Close()
 
 		seed := os.Getenv("SEED_ENABLED")
 		if seed == "" {
@@ -59,7 +68,7 @@ func main() {
 
 	rootHandler := handlers.NewRootHandler(standalone)
 	healthHandler := handlers.NewHealthHandler()
-	uploadHandler := handlers.NewUploadHandler()
+	uploadHandler := handlers.NewUploadHandler(nc, "b_log.uploaded", standalone)
 
 	mux := http.NewServeMux()
 	mux.Handle("/", rootHandler)
