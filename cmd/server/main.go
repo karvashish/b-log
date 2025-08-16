@@ -58,7 +58,11 @@ func main() {
 		}
 		defer nc.Close()
 
-		js, err = nc.JetStream()
+		jsDomain := os.Getenv("JS_DOMAIN")
+		if jsDomain == "" {
+			jsDomain = "prod"
+		}
+		js, err = nc.JetStream(nats.Domain(jsDomain))
 		if err != nil {
 			log.Fatalf("jetstream unavailable: %v", err)
 		}
