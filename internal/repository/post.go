@@ -37,7 +37,9 @@ func (r *PostRepository) GetAllPosts() []Post {
 
 func (r *PostRepository) GetPostByID(id int) *Post {
 	var p Post
-	err := r.db.QueryRow("SELECT id, title, content FROM posts WHERE id = ?", id).Scan(&p.ID, &p.Title, &p.Content)
+	err := r.db.QueryRow(
+		"SELECT id, title, content FROM posts WHERE id = $1", id,
+	).Scan(&p.ID, &p.Title, &p.Content)
 	if err != nil {
 		return nil
 	}
