@@ -13,17 +13,17 @@ import (
 )
 
 type UploadHandler struct {
-	nc         *nats.Conn
+	js         nats.JetStreamContext
 	subject    string
 	standalone bool
 }
 
-func NewUploadHandler(nc *nats.Conn, subject string, standalone bool) *UploadHandler {
+func NewUploadHandler(js nats.JetStreamContext, subject string, standalone bool) *UploadHandler {
 	if subject == "" {
 		subject = "b_log.uploaded"
 	}
 	return &UploadHandler{
-		nc:         nc,
+		js:         js,
 		subject:    subject,
 		standalone: standalone,
 	}
@@ -110,7 +110,7 @@ func (u *UploadHandler) handleUpload(w http.ResponseWriter, r *http.Request) {
 
 		out = append(out, result{Name: fh.Filename, Size: n})
 
-		if !u.standalone && u.nc != nil {
+		if !u.standalone && u.js != nil {
 			ev := uploadEvent{
 				OriginalName: fh.Filename,
 				StoredName:   dstName,
@@ -121,7 +121,10 @@ func (u *UploadHandler) handleUpload(w http.ResponseWriter, r *http.Request) {
 				RemoteAddr:   r.RemoteAddr,
 			}
 			if data, err := json.Marshal(ev); err == nil {
-				_ = u.nc.Publish(u.subject, data)
+				msg := nats.NewMsg(u.subject)
+				msg.Header.Set(nats.MsgIdHdr, dstName)
+				msg.Data = data
+				_, _ = u.js.PublishMsg(msg)
 			}
 		}
 	}

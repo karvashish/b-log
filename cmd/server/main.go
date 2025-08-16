@@ -38,6 +38,7 @@ func main() {
 	var (
 		db *sql.DB
 		nc *nats.Conn
+		js nats.JetStreamContext
 	)
 
 	if !standalone {
@@ -57,6 +58,24 @@ func main() {
 		}
 		defer nc.Close()
 
+		js, err = nc.JetStream()
+		if err != nil {
+			log.Fatalf("jetstream unavailable: %v", err)
+		}
+
+		if _, err := js.StreamInfo("uploads"); err != nil {
+			_, err = js.AddStream(&nats.StreamConfig{
+				Name:       "uploads",
+				Subjects:   []string{"b_log.uploaded"},
+				Storage:    nats.FileStorage,
+				Retention:  nats.LimitsPolicy,
+				Duplicates: 2 * time.Minute,
+			})
+			if err != nil {
+				log.Fatalf("failed to create JetStream stream: %v", err)
+			}
+		}
+
 		seed := os.Getenv("SEED_ENABLED")
 		if seed == "" {
 			log.Fatal("missing required env var: SEED_ENABLED")
@@ -68,7 +87,7 @@ func main() {
 
 	rootHandler := handlers.NewRootHandler(standalone)
 	healthHandler := handlers.NewHealthHandler()
-	uploadHandler := handlers.NewUploadHandler(nc, "b_log.uploaded", standalone)
+	uploadHandler := handlers.NewUploadHandler(js, "b_log.uploaded", standalone)
 
 	mux := http.NewServeMux()
 	mux.Handle("/", rootHandler)
